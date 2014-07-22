@@ -10,7 +10,7 @@ Preliminary readings:
 Pages are written in a declarative fashion using the JSON format.
 Starting point is a simple object and some specific properties that will be explained in this document.
 
-## Layouts and Areas
+## <a name="layouts_and_areas"></a>Layouts and Areas
 
 First of all a page should specify the layout which defines the available widget areas and how they are arranged visually when rendered by the web browser.
 If a page is intended to be used as a base page for [inheritance](#inheritance), the layout property should be omitted.
@@ -19,12 +19,14 @@ This is because only one page in an extension chain may define a layout and this
 Configuring the layout is done via the `layout` property of the page object.
 Its value is the name of the layout which is in turn a relative path within the layout folder to where the specific layout's assets are located (see [Creating Layouts](creating_layouts.md) for further information).
 If for example the desired layout is located at `popups/layout_one`, the according page (without any widgets yet) would look like this:
+<a name="example_1"></a>
 ```
 {
    "layout": "popups/layout_one"
 }
 ```
 Now let's assume the html file of `popups/layout_one` looks like this:
+<a name="example_2"></a>
 ```
 <div>
    <div ax-widget-area="header"></div>
@@ -36,6 +38,7 @@ Obviously there are three areas available, that can be occupied by widgets on th
 To do so, we add another top-level key `areas` parallel to`layout`.
 Its value is a map, where each key is the name of a widget area defined in the layout and the values are arrays, that will later list the widgets to render.
 Without any widgets yet, We thus get the following page file:
+<a name="example_3"></a>
 ```
 {
    "layout": "popups/layout_one",
@@ -50,10 +53,11 @@ When adding widgets to an area, the order is important, as this is the order in 
 Each entry in the array is an object that can either reference a widget or a [composition](#compositions).
 It thus needs to specify either `widget` or `composition` as key.
 Additionally a page wide unique (even over inheritance) `id` property can be provided.
-This can be useful for debugging and is mandatory in case a widget provides one or more embedded areas (like e.g. the popover widget), which is explained in detail in [TODO](TODO).
+This can be useful for debugging and is mandatory in case a widget provides one or more embedded areas (like e.g. a popover widget), which is explained in detail in [TODO](TODO).
 Finally it is possible to provide the configuration for features of a widget or a composition under the key `features`.
 
 Here is the example with some simple, exemplary content:
+<a name="example_4"></a>
 ```
 {
    "layout": "popups/layout_one",
@@ -100,6 +104,8 @@ Here is the example with some simple, exemplary content:
    }
 }
 ```
+The object under `features` needs to satisfy the schema defined for the features of the according widget in the file `widget.json`.
+When loading a page and its widgets, LaxarJS will actually validate the configuration provided in the page against the widget's schema and throw an error in case one or more constraints are violated.
 
 ## <a name="inheritance"></a>Inheritance
 
@@ -220,7 +226,79 @@ Hence the page that has the need to add content can reference the given id using
 ## <a name="compositions"></a>Compositions
 
 Although inheritance brings a bit of organization into the pages, for bigger applications with many widgets on a page this isn't sufficient.
-Very often most of a base page fits for all pages but some small things need to be adjusted for some of the pages that could otherwise reused throughout the application.
-Another use case is to enable the reuse of a bundle of widgets multiple times in one page, each time only with some different configuration.
+Very often most of a base page fits for all pages but some small things need to be adjusted for some of the pages that could otherwise be reused throughout the application.
+Another use case is to enable the reuse of a bundle of widgets multiple times within one page, each time only with some different configuration.
+
 All of this can be achieved by using compositions.
-The idea behind compositions is that they provide a widget like interface regarding their addition to a page (or another composition) and the internals of a page fragment, bundling some widgets and other compositions.
+The idea behind compositions is, that they provide a widget like interface regarding their addition to a page (or another composition) and the internals of a page fragment, bundling some widgets and other compositions.
+A composition thus has two basic properties: `areas`, like a page and `features` like a widget.
+A third more advanced property, namely `mergedFeatures`, will be explained later.
+
+Instead we'll start with the simple `popup_composition` we used above:
+```
+{
+   "features": {
+      "$schema": "http://json-schema.org/draft-04/schema#",
+      "type": "object",
+      "properties": {
+         "openPopup": {
+            "type": "object",
+            "properties": {
+               "onActions": {
+                  "type": "array",
+                  "items": {
+                     "type": "string"
+                  }
+               }
+            }
+         }
+      }
+   },
+   "areas": {
+      ".": [
+         {
+            "widget": "portal/popup_widget",
+            "id": "popup",
+            "features": {
+               "open": {
+                  "onActions": "${features.openPopup.onActions"
+               },
+               "close": {
+                  "onActions": [ "${topic:closeAction}" ]
+               }
+            }
+         }
+      ],
+      "popup.content": [
+         {
+            "widget": "portal/headline_widget",
+            "features": {
+               "headline": {
+                  "htmlText": "Say hi to the popup",
+                  "level": 4
+               }
+            }
+         },
+         {
+            "widget": "portal/command_bar_widget",
+            "features": {
+               "close": {
+                  "enabled": true,
+                  "action": "${topic:closeAction}"
+               }
+            }
+         }
+      ]
+   }
+}
+```
+This example already shows some of the additional characteristics that go beyond the two properties `features` and `areas`.
+Let's start from the beginning:
+
+First there is the `features` object, that for simple cases looks just like a feature specification of a widget.
+Here you can define all the features that your composition needs to be configurable from the outside.
+In this example we simply let the consumer of our composition define the action, that will be used to open the popup.
+
+Second there is the `areas` map and here there is already something noteworthy: The first area is simply named `.`.
+All widgets and compositions within this special area will replace the reference of the composition within the referencing area of the consuming page.
+So if we assume the [last example](#example_4) of the chapter [Layouts and Areas](#layouts_and_areas), this will be the area named `content`.
