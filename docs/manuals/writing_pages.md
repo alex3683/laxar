@@ -20,14 +20,14 @@ Configuring the layout is done via the `layout` property of the page object.
 Its value is the name of the layout which is in turn a relative path within the layout folder to where the specific layout's assets are located (see [Creating Layouts](creating_layouts.md) for further information).
 If for example the desired layout is located at `popups/layout_one`, the according page (without any widgets yet) would look like this:
 <a name="example_1"></a>
-```
+```JSON
 {
    "layout": "popups/layout_one"
 }
 ```
 Now let's assume the html file of `popups/layout_one` looks like this:
 <a name="example_2"></a>
-```
+```HTML
 <div>
    <div ax-widget-area="header"></div>
    <div ax-widget-area="content"></div>
@@ -39,7 +39,7 @@ To do so, we add another top-level key `areas` parallel to`layout`.
 Its value is a map, where each key is the name of a widget area defined in the layout and the values are arrays, that will later list the widgets to render.
 Without any widgets yet, We thus get the following page file:
 <a name="example_3"></a>
-```
+```JSON
 {
    "layout": "popups/layout_one",
    "areas": {
@@ -58,7 +58,7 @@ Finally it is possible to provide the configuration for features of a widget or 
 
 Here is the example with some simple, exemplary content:
 <a name="example_4"></a>
-```
+```JSON
 {
    "layout": "popups/layout_one",
    "areas": {
@@ -117,7 +117,7 @@ These should be extracted into one or more base pages, that define no layout and
 Valid candidate widgets for base pages are application headlines, informational notes in a footer area or activities providing common tasks for all pages.
 Let's apply this to our example from above and extract the HeadlineWidget into a base page called `base_page.json`.
 
-```
+```JSON
 {
    "areas": {
       "header": [
@@ -137,7 +137,7 @@ Let's apply this to our example from above and extract the HeadlineWidget into a
 We now can modify our original page using the keyword `extends` that references the base page relatively to the root path for all pages.
 The parts already provided by the base page can then be deleted:
 
-```
+```JSON
 {
    "layout": "popups/layout_one",
    "extends": "base_page",
@@ -181,7 +181,7 @@ Note that for this to work it's necessary to provide an `id` property for the ac
 Let's assume we wanted to add another additional headline in one extending page.
 We therefore change the base page first and add an id to the existing headline:
 
-```
+```JSON
 {
    "areas": {
       "header": [
@@ -201,7 +201,7 @@ We therefore change the base page first and add an id to the existing headline:
 ```
 Hence the page that has the need to add content can reference the given id using `insertBeforeId` like this:
 
-```
+```JSON
 {
    "layout": "popups/layout_one",
    "extends": "base_page",
@@ -235,7 +235,8 @@ A composition thus has two basic properties: `areas`, like a page and `features`
 A third more advanced property, namely `mergedFeatures`, will be explained later.
 
 Instead we'll start with the simple `popup_composition` we used above:
-```
+
+```JSON
 {
    "features": {
       "$schema": "http://json-schema.org/draft-04/schema#",
@@ -292,6 +293,7 @@ Instead we'll start with the simple `popup_composition` we used above:
    }
 }
 ```
+
 This example already shows some of the additional characteristics that go beyond the two properties `features` and `areas`.
 Let's start from the beginning:
 
@@ -315,6 +317,7 @@ Notice that these expressions are only written as a string to be JSON compatible
 Thus something like `"myPrefix${topic:closeAction}"`would not be interpreted when assembling the page and simply be used as is.
 
 This is than the final result after assembly:
+
 ```JSON
 {
    "layout": "popups/layout_one",
