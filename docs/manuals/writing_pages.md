@@ -315,7 +315,7 @@ Notice that these expressions are only written as a string to be JSON compatible
 Thus something like `"myPrefix${topic:closeAction}"`would not be interpreted when assembling the page and simply be used as is.
 
 This is than the final result after assembly:
-```
+```JSON
 {
    "layout": "popups/layout_one",
    "areas": {
