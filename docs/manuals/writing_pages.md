@@ -115,7 +115,7 @@ Nevertheless it has its valid use cases as in every user interface there are som
 These should be extracted into one or more base pages, that define no layout and can be reused by all other pages defining the layout necessary to display their contents.
 
 Valid candidate widgets for base pages are application headlines, informational notes in a footer area or activities providing common tasks for all pages.
-Let's apply this to our example from above and extract the HeadlineWidget into a base page called `base_page.json`.
+Let's apply this to our example from above and extract the *HeadlineWidget* into a base page called `base_page.json`.
 
 ```JSON
 {
@@ -390,4 +390,90 @@ This is than the final result after assembly:
 ```
 Note how also the id of the exported area was automatically adjusted to `"popupCompositionId0Popup.content"` to prevent naming clashes.
 
+In our example it's currently only possible to close the *PopupWidget* from within itself via an action event published by the *CommandBarWidget*.
+What if we additionally would like to close the popup on demand from outside based on another action?
+This is where the concept of *merged features* comes into play.
+*Merged features* allow us to merge or better concatenate two arrays, where one array is defined as a feature for the composition and the second array is defined in the `mergedFeatures` object.
+Syntactically this is achieved via a map under the key `mergedFeatures` where the key of each entry is the path of the array in the features and the value is the array to merge this value with.
 
+This should become clear when looking at our adjusted example:
+
+```JSON
+{
+   "features": {
+      "$schema": "http://json-schema.org/draft-04/schema#",
+      "type": "object",
+      "properties": {
+         "openPopup": {
+            "type": "object",
+            "properties": {
+               "onActions": {
+                  "type": "array",
+                  "items": {
+                     "type": "string"
+                  }
+               }
+            }
+         },
+         "closePopup": {
+            "type": "object",
+            "properties": {
+               "onActions": {
+                  "type": "array",
+                  "items": {
+                     "type": "string"
+                  },
+                  "default": []
+               }
+            }
+         }
+      }
+   },
+   "mergedFeatures": {
+      "closePopup.onActions": [ "${topic:closeAction}" ]
+   },
+   "areas": {
+      ".": [
+         {
+            "widget": "portal/popup_widget",
+            "id": "popup",
+            "features": {
+               "open": {
+                  "onActions": "${features.openPopup.onActions}"
+               },
+               "close": {
+                  "onActions": "${features.closePopup.onActions}"
+               }
+            }
+         }
+      ],
+      "popup.content": [
+         {
+            "widget": "portal/headline_widget",
+            "features": {
+               "headline": {
+                  "htmlText": "Say hi to the popup",
+                  "level": 4
+               }
+            }
+         },
+         {
+            "widget": "portal/command_bar_widget",
+            "features": {
+               "close": {
+                  "enabled": true,
+                  "action": "${topic:closeAction}"
+               }
+            }
+         }
+      ]
+   }
+}
+```
+
+Here we added the possibility to configured close actions for the *PopupWidget* as feature `closePopup.onActions`.
+For this we then added an entry in the `mergedFeatures` map whose value is an array that has the internal generated topic as only item.
+This enables us to now reference this feature when configuring the *PopupWidget*.
+Instead of creating the array with the generated topic here, we can simply reference the feature directly as it is the case for the `openPopup.onActions` feature.
+For the configuration of the *CommandBarWidget* nothing changed.
+When using the composition it is now possible to provide additional close actions, but since we defined an empty array as default for the feature, this isn't mandatory.
