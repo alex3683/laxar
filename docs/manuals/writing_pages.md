@@ -234,7 +234,7 @@ The idea behind compositions is, that they provide a widget like interface regar
 A composition thus has two basic properties: `areas`, like a page and `features` like a widget.
 A third more advanced property, namely `mergedFeatures`, will be explained later.
 
-Instead we'll start with the simple `popup_composition` we used above:
+Instead we'll start with the simple `popup_composition` we referenced above:
 
 ```JSON
 {
@@ -303,10 +303,10 @@ In this example we simply let the consumer of our composition define the action 
 
 Secondly there is the `areas` map and here there is already something noteworthy: The first area is simply named `.`.
 All widgets and compositions within this special area will replace the reference of the composition within the area of the page including the composition.
-So if we assume the [last example](#example_4) of the chapter [Layouts and Areas](#layouts_and_areas), this will be the area named `content`.
+So if we take the [last example](#example_4) of the chapter [Layouts and Areas](#layouts_and_areas), this will be the area named `content`.
 
-Additional important things to notice are the two strings `"${features.openPopup.onActions}"` and `"${topic:closeAction}"`.
-Those are expressions that will be evaluated by the page loader when assembling the page from its parts and are replaced by actual values as follows:
+Furthermore the two strings `"${features.openPopup.onActions}"` and `"${topic:closeAction}"` are worth noticing as they demonstrate another main feature of the composition concept.
+Those strings are expressions that will be evaluated by the page loader when assembling the complete page from its parts and are replaced by actual values as follows:
 The `"${features.openPopup.onActions}"` expression is a reference to a feature defined within the `features` object and will hold the value configured in the page including the composition.
 Thus applied to the [same example](#example_4) as mentioned before this will result in the array `[ "next" ]`.
 On the other hand the `"${topic:closeAction}"` expression generates a page wide unique event topic compatible string based on the local identifier `closeAction`.
@@ -316,7 +316,7 @@ These topic expressions should always be used when there is the need to have an 
 Notice that these expressions are only written as a string to be JSON compatible and that no string interpolation takes place.
 Thus something like `"myPrefix${topic:closeAction}"`would not be interpreted when assembling the page and simply be used as is.
 
-This is than the final result after assembly:
+The assembled page thus looks similar to this:
 
 ```JSON
 {
@@ -394,7 +394,7 @@ In our example it's currently only possible to close the *PopupWidget* from with
 What if we additionally would like to close the popup on demand from outside based on another action?
 This is where the concept of *merged features* comes into play.
 *Merged features* allow us to merge or better concatenate two arrays, where one array is defined as a feature for the composition and the second array is defined in the `mergedFeatures` object.
-Syntactically this is achieved via a map under the key `mergedFeatures` where the key of each entry is the path of the array in the features and the value is the array to merge this value with.
+Syntactically this is achieved via a map under the key `mergedFeatures` where the key of each entry is the path to the array in the features and the value is the array to merge this value with.
 
 This should become clear when looking at our adjusted example:
 
